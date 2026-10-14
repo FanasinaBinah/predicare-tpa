@@ -1,0 +1,201 @@
+{
+  "version": "v1",
+  "modele": "xgb",
+  "date": "2026-10-14T10:45:56",
+  "colonnes": [
+    "type_facture",
+    "canal_reception",
+    "mode_reglement",
+    "nb_lignes",
+    "montant_total",
+    "montant_eligible",
+    "rang_beneficiaire",
+    "formule",
+    "contrat_statut",
+    "nb_beneficiaires",
+    "type_prestataire",
+    "presta_specialite",
+    "ville_presta",
+    "heure_ouverture",
+    "heure_fermeture",
+    "niveau_tarif",
+    "note_qualite",
+    "presta_statut",
+    "ratio_prix_max",
+    "ratio_grille_max",
+    "ratio_max_max",
+    "nb_lignes_hors_grille",
+    "nb_lignes_depasse_max",
+    "nb_lignes_au_dessus_grille",
+    "quantite_max",
+    "validite_jours",
+    "ord_type",
+    "delai_ord_jours",
+    "ord_perimee",
+    "ord_apres_soin",
+    "ord_autre_assure",
+    "ord_sans_diagnostic",
+    "nb_lignes_non_prescrites",
+    "nb_lignes_qte_excedentaire",
+    "jours_depuis_adhesion",
+    "soin_avant_adhesion",
+    "soin_apres_radiation",
+    "soin_avant_convention",
+    "presta_radie_a_la_date",
+    "jour_semaine",
+    "jour_ferme",
+    "heure",
+    "hors_horaires",
+    "nb_lignes_sexe_incoherent",
+    "nb_lignes_age_incoherent",
+    "nb_meme_numero",
+    "nb_meme_cle",
+    "est_repetition",
+    "nb_meme_jour",
+    "nb_fact_ord",
+    "nb_presta_ord",
+    "delai_carence_jours",
+    "attestation_requise",
+    "soin_en_carence",
+    "attestation_absente",
+    "nb_lignes_exclues",
+    "entente_absente",
+    "nb_signaux",
+    "est_copie",
+    "a_ordonnance",
+    "a_attestation",
+    "a_entente",
+    "mois_soin"
+  ],
+  "categories": {
+    "type_facture": [
+      "CONSULTATION",
+      "DENTAIRE",
+      "HOSPITALISATION",
+      "IMAGERIE",
+      "KINESITHERAPIE",
+      "LABORATOIRE",
+      "MATERNITE",
+      "OPTIQUE",
+      "PHARMACIE"
+    ],
+    "canal_reception": [
+      "EMAIL",
+      "PAPIER_SCAN",
+      "PORTAIL_PRESTATAIRE"
+    ],
+    "mode_reglement": [
+      "REMBOURSEMENT_ASSURE",
+      "TIERS_PAYANT"
+    ],
+    "rang_beneficiaire": [
+      "ASSURE_PRINCIPAL",
+      "CONJOINT",
+      "ENFANT"
+    ],
+    "formule": [
+      "CONFORT",
+      "ESSENTIEL",
+      "PREMIUM"
+    ],
+    "contrat_statut": [
+      "ACTIF",
+      "RESILIE"
+    ],
+    "type_prestataire": [
+      "CABINET_DENTAIRE",
+      "CABINET_GENERALISTE",
+      "CABINET_KINE",
+      "CABINET_SPECIALISTE",
+      "CENTRE_IMAGERIE",
+      "CLINIQUE",
+      "LABORATOIRE",
+      "MATERNITE",
+      "OPTICIEN",
+      "PHARMACIE"
+    ],
+    "presta_specialite": [
+      "CARDIOLOGIE",
+      "DERMATOLOGIE",
+      "ENDOCRINOLOGIE",
+      "GASTRO-ENTEROLOGIE",
+      "GYNECOLOGIE",
+      "NEPHROLOGIE",
+      "NEUROLOGIE",
+      "OPHTALMOLOGIE",
+      "ORL",
+      "PEDIATRIE",
+      "PNEUMOLOGIE",
+      "PSYCHIATRIE",
+      "RHUMATOLOGIE",
+      "TRAUMATO-ORTHOPEDIE",
+      "UROLOGIE"
+    ],
+    "ville_presta": [
+      "Antananarivo",
+      "Antsirabe",
+      "Antsiranana",
+      "Fianarantsoa",
+      "Mahajanga",
+      "Toamasina",
+      "Toliara"
+    ],
+    "niveau_tarif": [
+      "ELEVE",
+      "RAISONNABLE",
+      "TRES_ELEVE"
+    ],
+    "presta_statut": [
+      "ACTIF",
+      "RADIE"
+    ],
+    "ord_type": [
+      "EXAMENS",
+      "KINE",
+      "MEDICAMENTS",
+      "OPTIQUE"
+    ]
+  },
+  "seuil": 0.7114720344543457,
+  "recall_cible": 0.97,
+  "scale_pos_weight": 10.376355988487935,
+  "split": {
+    "train": 51387,
+    "validation": 16029,
+    "test": 17177
+  },
+  "resultats": {
+    "validation": {
+      "seuil": 0.7115,
+      "rappel": 0.9703,
+      "precision": 0.9682,
+      "taux_alerte": 0.0843,
+      "pr_auc": 0.9944,
+      "roc_auc": 0.999
+    },
+    "test": {
+      "seuil": 0.7115,
+      "rappel": 0.9602,
+      "precision": 0.976,
+      "taux_alerte": 0.0849,
+      "pr_auc": 0.9919,
+      "roc_auc": 0.9982
+    },
+    "rappel_par_type_test": {
+      "DOUBLON": 0.843,
+      "FRACTIONNEMENT": 0.9,
+      "UPCODING": 0.903,
+      "PRESTATAIRE_RADIE": 0.93,
+      "HORS_COUVERTURE": 0.957,
+      "SURCONSOMMATION": 0.959,
+      "ACTE_FICTIF": 0.989,
+      "INCOHERENCE_PROFIL": 1.0,
+      "ORDONNANCE_EXPIREE": 1.0,
+      "LIGNES_NON_PRESCRITES": 1.0,
+      "SOINS_JOUR_FERME": 1.0,
+      "QUANTITE_EXCESSIVE": 1.0,
+      "SUBSTITUTION_PRODUIT": 1.0,
+      "SURFACTURATION": 1.0
+    }
+  }
+}
