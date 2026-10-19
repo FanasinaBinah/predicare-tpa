@@ -1,7 +1,7 @@
 {
   "version": "v1",
   "modele": "xgboost",
-  "date": "2026-10-16T09:25:29",
+  "date": "2026-10-19T05:14:55",
   "features": [
     "ord_perimee",
     "nb_lignes_non_prescrites",
@@ -79,6 +79,6 @@
     "n_alertes_test": 1084,
     "n_test": 12689
   },
-  "mlflow_run_id": "ef3a3d82398a49209c08f7681c7b55cc",
+  "mlflow_run_id": "e6e7510f53fc4816b76987cd1bf63026",
   "note": "seuil_alerte = score min pour alerte gestionnaire. Configurable en prod via admin / .env sans réentraîner. RAPPEL_CIBLE sert uniquement au calibrage pendant l'entraînement."
 }
