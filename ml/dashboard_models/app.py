@@ -2,6 +2,7 @@
 """
 PrediCare TPA — Tableau de bord modèles
 Lancement : python -m streamlit run app.py
+Unité monétaire : MGA (Ariary malgache)
 """
 
 from __future__ import annotations
@@ -189,13 +190,14 @@ def load_version_meta(version: str) -> dict:
     return base
 
 
-def fmt_ar(x: float) -> str:
+def fmt_mga(x: float) -> str:
+    """Format monétaire en MGA (Ariary)."""
     ax = abs(x)
     if ax >= 1_000_000_000:
-        return f"{x / 1_000_000_000:.2f} Md Ar"
+        return f"{x / 1_000_000_000:.2f} Md MGA"
     if ax >= 1_000_000:
-        return f"{x / 1_000_000:.1f} M Ar"
-    return f"{x:,.0f} Ar".replace(",", " ")
+        return f"{x / 1_000_000:.1f} M MGA"
+    return f"{x:,.0f} MGA".replace(",", " ")
 
 
 def fmt_pct(x: float) -> str:
@@ -214,9 +216,8 @@ for k, val in {
     if k not in st.session_state:
         st.session_state[k] = val
 
-# --- Sidebar ---
 st.sidebar.markdown("### PrediCare TPA")
-st.sidebar.caption("Modèles · Alertes · Impact")
+st.sidebar.caption("Modèles · Alertes · Impact · MGA")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigation",
@@ -226,11 +227,10 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.caption("La décision finale appartient au gestionnaire.")
 
-# --- Header ---
 st.markdown('<p class="eyebrow">PrediCare TPA</p>', unsafe_allow_html=True)
 st.title("Votre activité en un regard")
 st.markdown(
-    '<p class="subtitle">Performances des modèles · alertes · impact estimé</p>',
+    '<p class="subtitle">Performances des modèles · alertes · impact estimé (MGA)</p>',
     unsafe_allow_html=True,
 )
 
@@ -263,7 +263,7 @@ if st.session_state.params_open:
           <div class="form-title">Paramètres</div>
           <div class="form-sub">
             Volume, taux de fraude, montant moyen et coût d’examen d’une alerte.
-            Le modèle se choisit dans la barre du haut.
+            Unité : <b>MGA</b> (Ariary). Le modèle se choisit dans la barre du haut.
           </div>
         </div>
         """,
@@ -285,7 +285,7 @@ if st.session_state.params_open:
                 step=1.0,
             )
             montant_moyen = st.number_input(
-                "Montant moyen d’une fraude (Ar)",
+                "Montant moyen d’une fraude (MGA)",
                 min_value=0.0,
                 value=float(st.session_state.montant_moyen),
                 step=5000.0,
@@ -299,13 +299,13 @@ if st.session_state.params_open:
                 step=0.01,
             )
             cout_horaire = st.number_input(
-                "Coût horaire chargé (Ar)",
+                "Coût horaire chargé (MGA)",
                 min_value=0.0,
                 value=float(st.session_state.cout_horaire),
                 step=500.0,
             )
             cout_prev = (minutes_dossier / 60.0) * cout_horaire
-            st.metric("Coût d’examen d’une alerte", f"{cout_prev:,.0f} Ar".replace(",", " "))
+            st.metric("Coût d’examen d’une alerte", f"{cout_prev:,.0f} MGA".replace(",", " "))
             st.caption("(minutes ÷ 60) × coût horaire")
 
         if st.form_submit_button("Appliquer", use_container_width=True):
@@ -341,7 +341,6 @@ st.markdown(
 )
 st.write("")
 
-# --- Pages ---
 if page == "Tableau de bord":
     st.markdown("### Résultats du modèle")
     k1, k2, k3, k4 = st.columns(4)
@@ -360,7 +359,7 @@ if page == "Tableau de bord":
               précision {fmt_pct(v['precision'])}, seuil <b>{v['seuil']:.4f}</b>.</p>
               <p><b>Version recommandée : v2</b> — meilleur équilibre entre
               fraudes attrapées, précision et volume d’alertes.</p>
-              <p class="hint">Le gestionnaire valide chaque alerte.</p>
+              <p class="hint">Le gestionnaire valide chaque alerte. Montants en MGA.</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -479,11 +478,12 @@ elif page == "Alertes":
 
 else:
     st.markdown("### Impact estimé")
+    st.caption("Montants en MGA (Ariary malgache).")
     a1, a2, a3, a4 = st.columns(4)
-    a1.metric("Économisé", fmt_ar(economies))
-    a2.metric("Coût des fausses alertes", fmt_ar(cout_examens))
-    a3.metric("Gain net", fmt_ar(gain))
-    a4.metric("Coût par alerte", fmt_ar(cout_examen))
+    a1.metric("Économisé", fmt_mga(economies))
+    a2.metric("Coût des fausses alertes", fmt_mga(cout_examens))
+    a3.metric("Gain net", fmt_mga(gain))
+    a4.metric("Coût par alerte", fmt_mga(cout_examen))
 
     st.markdown("### Comparaison des 3 versions")
     rows = []
@@ -503,12 +503,13 @@ else:
                 "Rappel": f"{vv['recall']*100:.1f} %",
                 "Précision": f"{vv['precision']*100:.1f} %",
                 "% alertes": f"{vv['pct_alertes']:.1f} %",
-                "Économisé": fmt_ar(eco),
-                "Coût FP": fmt_ar(cex),
-                "Gain net": fmt_ar(gn),
+                "Économisé": fmt_mga(eco),
+                "Coût FP": fmt_mga(cex),
+                "Gain net": fmt_mga(gn),
             }
         )
     st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
     st.success(
         "**v2 recommandée** — meilleur équilibre rappel / précision / volume d’alertes."
     )
+    
