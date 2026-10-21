@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-PrediCare TPA — Tableau de bord modèles et analyse financière
+PrediCare TPA — Tableau de bord modèles
 Lancement : python -m streamlit run app.py
 """
 
@@ -14,9 +14,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-# ---------------------------------------------------------------------
-# Couleurs
-# ---------------------------------------------------------------------
 NAVY = "#16233F"
 NAVY_LIGHT = "#243858"
 CREAM = "#F8EFDF"
@@ -78,20 +75,12 @@ st.markdown(
         color: white; font-weight: 600; padding: .45rem 1rem;
     }}
     .stButton > button:hover {{ background: {NAVY_LIGHT}; border-color: {NAVY_LIGHT}; color: white; }}
-    /* Inputs clairs dans le formulaire */
-    .form-shell [data-testid="stNumberInput"] input,
-    .form-shell [data-baseweb="select"] > div {{
-        background: #FAFBFC !important; border-radius: 10px;
-    }}
     hr {{ border-color: {BORDER}; }}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# ---------------------------------------------------------------------
-# Modèles
-# ---------------------------------------------------------------------
 ROOT = Path(__file__).resolve().parent
 CANDIDATES = [ROOT.parent / "models", ROOT.parent.parent / "models", ROOT / "models"]
 
@@ -213,8 +202,7 @@ def fmt_pct(x: float) -> str:
     return f"{x * 100:.1f} %" if x <= 1 else f"{x:.1f} %"
 
 
-# Session
-defaults_state = {
+for k, val in {
     "params_open": False,
     "version": "v2",
     "n_factures": 84_593,
@@ -222,34 +210,27 @@ defaults_state = {
     "minutes_dossier": 15.0,
     "cout_horaire": 10_000.0,
     "montant_moyen": 150_000.0,
-    "cout_mensuel": 1_750_000.0,
-    "n_mois": 24,
-}
-for k, val in defaults_state.items():
+}.items():
     if k not in st.session_state:
         st.session_state[k] = val
 
-# ---------------------------------------------------------------------
-# Sidebar navigation
-# ---------------------------------------------------------------------
+# --- Sidebar ---
 st.sidebar.markdown("### PrediCare TPA")
-st.sidebar.caption("Pilotage · Finance · Modèles")
+st.sidebar.caption("Modèles · Alertes · Impact")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigation",
-    ["Tableau de bord", "Analyse financière", "Performance", "Alertes"],
+    ["Tableau de bord", "Performance", "Alertes", "Impact estimé"],
     label_visibility="collapsed",
 )
 st.sidebar.markdown("---")
 st.sidebar.caption("La décision finale appartient au gestionnaire.")
 
-# ---------------------------------------------------------------------
-# En-tête : titre + choix modèle + bouton paramètres
-# ---------------------------------------------------------------------
+# --- Header ---
 st.markdown('<p class="eyebrow">PrediCare TPA</p>', unsafe_allow_html=True)
 st.title("Votre activité en un regard")
 st.markdown(
-    '<p class="subtitle">Modèles, alertes et analyse financière · montants en Ariary</p>',
+    '<p class="subtitle">Performances des modèles · alertes · impact estimé</p>',
     unsafe_allow_html=True,
 )
 
@@ -267,7 +248,7 @@ with bar1:
         st.session_state.version = version_ui
         st.rerun()
 with bar2:
-    if st.button("Paramètres de calcul", use_container_width=True):
+    if st.button("Paramètres", use_container_width=True):
         st.session_state.params_open = not st.session_state.params_open
 with bar3:
     if st.session_state.params_open:
@@ -275,23 +256,19 @@ with bar3:
             st.session_state.params_open = False
             st.rerun()
 
-# ---------------------------------------------------------------------
-# Formulaire blanc (uniquement si ouvert)
-# ---------------------------------------------------------------------
 if st.session_state.params_open:
     st.markdown(
         """
         <div class="form-shell">
-          <div class="form-title">Paramètres de calcul</div>
+          <div class="form-title">Paramètres</div>
           <div class="form-sub">
-            Ajustez les hypothèses métier. Le modèle se choisit dans la barre du haut.
-            Coût d’examen = (minutes ÷ 60) × coût horaire.
+            Volume, taux de fraude, montant moyen et coût d’examen d’une alerte.
+            Le modèle se choisit dans la barre du haut.
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-
     with st.form("form_params"):
         c1, c2 = st.columns(2)
         with c1:
@@ -313,12 +290,6 @@ if st.session_state.params_open:
                 value=float(st.session_state.montant_moyen),
                 step=5000.0,
             )
-            cout_mensuel = st.number_input(
-                "Coût mensuel d’exploitation (Ar)",
-                min_value=0.0,
-                value=float(st.session_state.cout_mensuel),
-                step=50000.0,
-            )
         with c2:
             taux_fraude_pct = st.number_input(
                 "Taux de fraude (%)",
@@ -333,30 +304,19 @@ if st.session_state.params_open:
                 value=float(st.session_state.cout_horaire),
                 step=500.0,
             )
-            n_mois = st.number_input(
-                "Période (mois)",
-                min_value=1,
-                value=int(st.session_state.n_mois),
-                step=1,
-            )
             cout_prev = (minutes_dossier / 60.0) * cout_horaire
-            st.metric("Coût d’examen calculé", f"{cout_prev:,.0f} Ar".replace(",", " "))
+            st.metric("Coût d’examen d’une alerte", f"{cout_prev:,.0f} Ar".replace(",", " "))
+            st.caption("(minutes ÷ 60) × coût horaire")
 
-        applied = st.form_submit_button("Appliquer", use_container_width=True)
-        if applied:
+        if st.form_submit_button("Appliquer", use_container_width=True):
             st.session_state.n_factures = int(n_factures)
             st.session_state.taux_fraude_pct = float(taux_fraude_pct)
             st.session_state.minutes_dossier = float(minutes_dossier)
             st.session_state.cout_horaire = float(cout_horaire)
             st.session_state.montant_moyen = float(montant_moyen)
-            st.session_state.cout_mensuel = float(cout_mensuel)
-            st.session_state.n_mois = int(n_mois)
             st.session_state.params_open = False
             st.rerun()
 
-# ---------------------------------------------------------------------
-# Calculs
-# ---------------------------------------------------------------------
 version = st.session_state.version
 v = load_version_meta(version)
 n_factures = st.session_state.n_factures
@@ -364,58 +324,43 @@ taux_fraude = st.session_state.taux_fraude_pct / 100.0
 minutes_dossier = st.session_state.minutes_dossier
 cout_horaire = st.session_state.cout_horaire
 montant_moyen = st.session_state.montant_moyen
-cout_mensuel = st.session_state.cout_mensuel
-n_mois = st.session_state.n_mois
 
 cout_examen = (minutes_dossier / 60.0) * cout_horaire
 n_fraudes = n_factures * taux_fraude
 n_vp = n_fraudes * v["recall"]
 n_alertes = n_factures * (v["pct_alertes"] / 100.0)
 n_fp = max(0.0, n_alertes - n_vp)
-
 economies = n_vp * montant_moyen
 cout_examens = n_fp * cout_examen
-cout_exploitation = cout_mensuel * n_mois
-cout_total = cout_examens + cout_exploitation
-gain_net = economies - cout_total
-roi = (gain_net / cout_total * 100) if cout_total > 0 else 0.0
-gain_mensuel = max(0.0, (economies - cout_examens) / max(n_mois, 1))
-payback = (cout_exploitation / gain_mensuel) if gain_mensuel > 0 else None
+gain = economies - cout_examens
 
 st.markdown(
     f'<span class="badge">{v["label"]}</span>'
-    f'&nbsp; <span class="hint">Seuil {v["seuil"]:.4f} · '
-    f"Examen {fmt_ar(cout_examen)} · {n_mois} mois</span>",
+    f'&nbsp; <span class="hint">Seuil {v["seuil"]:.4f}</span>',
     unsafe_allow_html=True,
 )
 st.write("")
 
-# ---------------------------------------------------------------------
-# Pages
-# ---------------------------------------------------------------------
+# --- Pages ---
 if page == "Tableau de bord":
+    st.markdown("### Résultats du modèle")
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Argent économisé", fmt_ar(economies))
-    k2.metric("Gain net", fmt_ar(gain_net), f"ROI {roi:,.0f} %")
-    k3.metric("Coût total", fmt_ar(cout_total))
-    k4.metric("Alertes", f"{n_alertes:,.0f}".replace(",", " "))
+    k1.metric("Rappel", fmt_pct(v["recall"]))
+    k2.metric("Précision", fmt_pct(v["precision"]))
+    k3.metric("F1", fmt_pct(v["f1"]))
+    k4.metric("% alertes", f"{v['pct_alertes']:.1f} %")
 
     left, right = st.columns([1.2, 1])
     with left:
-        st.markdown("### Lecture rapide")
-        ratio = (economies / cout_exploitation) if cout_exploitation > 0 else 0
+        st.markdown("### Lecture")
         st.markdown(
             f"""
             <div class="card">
-              <p><b>Gain vs exploitation</b><br/>
-              Économies <b>{fmt_ar(economies)}</b> pour un coût d’exploitation
-              de <b>{fmt_ar(cout_exploitation)}</b>
-              (environ <b>{ratio:.0f}×</b> l’infra sur la période).</p>
-              <p><b>Version recommandée : v2</b><br/>
-              Meilleur équilibre entre fraudes attrapées, charge des équipes et ROI.
-              v1 est plus prudent ; v3 augmente les alertes et les coûts de traitement.</p>
-              <p class="hint">Le gestionnaire valide chaque alerte.
-              Les montants affichés dépendent des paramètres et des performances du modèle.</p>
+              <p><b>{v['label']}</b> — rappel {fmt_pct(v['recall'])},
+              précision {fmt_pct(v['precision'])}, seuil <b>{v['seuil']:.4f}</b>.</p>
+              <p><b>Version recommandée : v2</b> — meilleur équilibre entre
+              fraudes attrapées, précision et volume d’alertes.</p>
+              <p class="hint">Le gestionnaire valide chaque alerte.</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -434,74 +379,6 @@ if page == "Tableau de bord":
             font_color=NAVY,
         )
         st.plotly_chart(fig_pie, use_container_width=True)
-
-elif page == "Analyse financière":
-    st.markdown("### Analyse financière")
-    a1, a2, a3, a4 = st.columns(4)
-    a1.metric("Économies brutes", fmt_ar(economies))
-    a2.metric("Coût examens (FP)", fmt_ar(cout_examens))
-    a3.metric(f"Exploitation ({n_mois} mois)", fmt_ar(cout_exploitation))
-    a4.metric("Gain net · ROI", f"{fmt_ar(gain_net)} · {roi:,.0f} %")
-
-    fig_w = go.Figure(
-        go.Waterfall(
-            orientation="v",
-            measure=["absolute", "relative", "relative", "total"],
-            x=["Économisé", "− Examens", "− Exploitation", "Gain net"],
-            y=[economies, -cout_examens, -cout_exploitation, gain_net],
-            text=[fmt_ar(economies), fmt_ar(-cout_examens), fmt_ar(-cout_exploitation), fmt_ar(gain_net)],
-            textposition="outside",
-            connector={"line": {"color": BORDER}},
-            increasing={"marker": {"color": GREEN}},
-            decreasing={"marker": {"color": RED}},
-            totals={"marker": {"color": NAVY}},
-        )
-    )
-    fig_w.update_layout(
-        height=350,
-        margin=dict(l=20, r=20, t=20, b=20),
-        paper_bgcolor=CREAM,
-        plot_bgcolor=WHITE,
-        font_color=NAVY,
-    )
-    st.plotly_chart(fig_w, use_container_width=True)
-
-    b1, b2, b3 = st.columns(3)
-    b1.metric("Payback", f"{payback:.1f} mois" if payback else "—")
-    b2.metric("Coût / facture", fmt_ar(cout_exploitation / n_factures if n_factures else 0))
-    b3.metric("Coût / alerte", fmt_ar(cout_examen))
-
-    st.markdown("### Comparaison des 3 versions")
-    rows = []
-    for ver in ("v1", "v2", "v3"):
-        vv = load_version_meta(ver)
-        n_fra = n_factures * taux_fraude
-        vp = n_fra * vv["recall"]
-        al = n_factures * (vv["pct_alertes"] / 100.0)
-        fp = max(0.0, al - vp)
-        eco = vp * montant_moyen
-        cex = fp * cout_examen
-        ctot = cex + cout_exploitation
-        gn = eco - ctot
-        r = (gn / ctot * 100) if ctot > 0 else 0
-        rows.append(
-            {
-                "Version": vv["label"],
-                "Seuil": round(vv["seuil"], 4),
-                "Rappel": f"{vv['recall']*100:.1f} %",
-                "Précision": f"{vv['precision']*100:.1f} %",
-                "% alertes": f"{vv['pct_alertes']:.1f} %",
-                "Économisé": fmt_ar(eco),
-                "Coût FP": fmt_ar(cex),
-                "Gain net": fmt_ar(gn),
-                "ROI": f"{r:,.0f} %",
-            }
-        )
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-    st.success(
-        "**v2 recommandée** — meilleur équilibre fraudes / charge / ROI. "
-        "Dans les trois cas, le gain net reste très supérieur au coût d’exploitation."
-    )
 
 elif page == "Performance":
     st.markdown(f"### Performance — {v['label']}")
@@ -575,7 +452,7 @@ elif page == "Performance":
     )
     st.plotly_chart(fig_t, use_container_width=True)
 
-else:
+elif page == "Alertes":
     st.markdown("### Alertes")
     x1, x2, x3, x4 = st.columns(4)
     x1.metric("Alertes", f"{n_alertes:,.0f}".replace(",", " "))
@@ -599,3 +476,39 @@ else:
     )
     fig_pie.update_layout(height=300, paper_bgcolor=CREAM, font_color=NAVY)
     st.plotly_chart(fig_pie, use_container_width=True)
+
+else:
+    st.markdown("### Impact estimé")
+    a1, a2, a3, a4 = st.columns(4)
+    a1.metric("Économisé", fmt_ar(economies))
+    a2.metric("Coût des fausses alertes", fmt_ar(cout_examens))
+    a3.metric("Gain net", fmt_ar(gain))
+    a4.metric("Coût par alerte", fmt_ar(cout_examen))
+
+    st.markdown("### Comparaison des 3 versions")
+    rows = []
+    for ver in ("v1", "v2", "v3"):
+        vv = load_version_meta(ver)
+        n_fra = n_factures * taux_fraude
+        vp = n_fra * vv["recall"]
+        al = n_factures * (vv["pct_alertes"] / 100.0)
+        fp = max(0.0, al - vp)
+        eco = vp * montant_moyen
+        cex = fp * cout_examen
+        gn = eco - cex
+        rows.append(
+            {
+                "Version": vv["label"],
+                "Seuil": round(vv["seuil"], 4),
+                "Rappel": f"{vv['recall']*100:.1f} %",
+                "Précision": f"{vv['precision']*100:.1f} %",
+                "% alertes": f"{vv['pct_alertes']:.1f} %",
+                "Économisé": fmt_ar(eco),
+                "Coût FP": fmt_ar(cex),
+                "Gain net": fmt_ar(gn),
+            }
+        )
+    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    st.success(
+        "**v2 recommandée** — meilleur équilibre rappel / précision / volume d’alertes."
+    )
